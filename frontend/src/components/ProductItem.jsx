@@ -1,11 +1,12 @@
 import React, { useContext } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 
 const ProductItem = ({ id, name, price, image }) => {
   const { currency } = useContext(ShopContext);
+  const navigate = useNavigate();
   return (
-    <Link to={`product/${id}`}>
+    <div onClick={() => navigate(`/product/${id}`)}>
       <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden group">
         {/* Product Image */}
         <div className="relative w-full h-56 bg-gray-100 overflow-hidden">
@@ -27,7 +28,7 @@ const ProductItem = ({ id, name, price, image }) => {
           </p>
         </div>
       </div>
-    </Link>
+    </div>
   );
 };
 

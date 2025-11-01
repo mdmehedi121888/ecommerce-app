@@ -11,23 +11,27 @@ import Cart from "./pages/Cart";
 import PlaceOrder from "./pages/PlaceOrder";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import SearchBar from "./components/SearchBar";
 
 const App = () => {
   return (
     <div>
       <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/collection" element={<Collection />} />
-        <Route path="/product/:productId" element={<Product />} />
-        <Route path="/orders" element={<Orders />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/place-order" element={<PlaceOrder />} />
-      </Routes>
-      <Footer />
+      <div className="pt-16">
+        <SearchBar />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/collection" element={<Collection />} />
+          <Route path="/product/:productId" element={<Product />} />
+          <Route path="/orders" element={<Orders />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/place-order" element={<PlaceOrder />} />
+        </Routes>
+        <Footer />
+      </div>
     </div>
   );
 };

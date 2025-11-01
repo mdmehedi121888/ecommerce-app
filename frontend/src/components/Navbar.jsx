@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { FiSearch, FiUser, FiShoppingCart, FiMenu, FiX } from "react-icons/fi";
+import { ShopContext } from "../context/ShopContext";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const { setShowSearch } = useContext(ShopContext);
 
   return (
     <nav className="bg-white shadow-md fixed w-full top-0 left-0 z-50">
@@ -47,8 +49,11 @@ const Navbar = () => {
 
           {/* Right: Icons */}
           <div className="flex items-center space-x-4 relative">
-            {/* Search */}
-            <FiSearch className="text-xl text-gray-700 cursor-pointer hover:text-blue-600" />
+            {/* Search Icon */}
+            <FiSearch
+              onClick={() => setShowSearch((prev) => !prev)}
+              className="text-xl text-gray-700 cursor-pointer hover:text-blue-600 transition-colors duration-200"
+            />
 
             {/* Profile with dropdown */}
             <div
