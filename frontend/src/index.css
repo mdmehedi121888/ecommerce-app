@@ -1,1 +1,31 @@
 @import "tailwindcss";
+
+/* Keyframes for smooth horizontal scroll */
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%); /* move half since we duplicated the items */
+  }
+}
+
+/* Apply animation */
+.animate-scroll {
+  display: flex;
+  align-items: stretch;
+  animation: scroll-left 22s linear infinite;
+  will-change: transform;
+}
+
+/* Pause animation when user hovers over the whole related-group */
+.related-group:hover .animate-scroll {
+  animation-play-state: paused;
+}
+
+/* Optionally, make it smooth for touch devices when pressing */
+.related-group:active .animate-scroll {
+  animation-play-state: paused;
+}
+
+

@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { FiSearch, FiUser, FiShoppingCart, FiMenu, FiX } from "react-icons/fi";
 import { ShopContext } from "../context/ShopContext";
+import { assets } from "../assets/assets";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -16,7 +17,7 @@ const Navbar = () => {
           <Link to="/">
             <div className="shrink-0 text-2xl font-bold text-gray-800">
               <img
-                src="./hasanah_logo.jpg"
+                src={assets.logo}
                 alt="Logo"
                 className="h-10 w-auto rounded-full"
               />
