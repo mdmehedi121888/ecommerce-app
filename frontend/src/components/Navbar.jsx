@@ -11,13 +11,15 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left: Logo */}
-          <div className="shrink-0 text-2xl font-bold text-gray-800">
-            <img
-              src="./hasanah_logo.jpg"
-              alt="Logo"
-              className="h-10 w-auto rounded-full"
-            />
-          </div>
+          <Link to="/">
+            <div className="shrink-0 text-2xl font-bold text-gray-800">
+              <img
+                src="./hasanah_logo.jpg"
+                alt="Logo"
+                className="h-10 w-auto rounded-full"
+              />
+            </div>
+          </Link>
 
           {/* Middle: Nav Links (hidden on small screens) */}
           <div className="hidden md:flex space-x-8">
