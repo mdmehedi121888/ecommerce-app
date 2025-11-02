@@ -50,7 +50,7 @@ const Cart = () => {
       <h2 className="text-3xl font-semibold mb-6">Shopping Cart</h2>
 
       {cartData.length === 0 ? (
-        <div className="flex flex-col items-center justify-center flex-grow text-center">
+        <div className="flex flex-col items-center justify-center grow text-center">
           <img
             src={assets.empty_cart}
             alt="Empty Cart"
