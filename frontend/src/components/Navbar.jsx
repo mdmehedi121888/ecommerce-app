@@ -7,7 +7,7 @@ import { assets } from "../assets/assets";
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const { setShowSearch } = useContext(ShopContext);
+  const { setShowSearch, getCartCount } = useContext(ShopContext);
 
   return (
     <nav className="bg-white shadow-md fixed w-full top-0 left-0 z-50">
@@ -62,7 +62,9 @@ const Navbar = () => {
               onMouseEnter={() => setProfileOpen(true)}
               onMouseLeave={() => setProfileOpen(false)}
             >
-              <FiUser className="text-xl text-gray-700 cursor-pointer hover:text-blue-600" />
+              <Link to="/login">
+                <FiUser className="text-xl text-gray-700 cursor-pointer hover:text-blue-600" />
+              </Link>
               {profileOpen && (
                 <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 shadow-lg rounded-md">
                   <NavLink
@@ -88,7 +90,7 @@ const Navbar = () => {
             <Link to="/cart" className="relative">
               <FiShoppingCart className="text-xl text-gray-700 cursor-pointer hover:text-blue-600" />
               <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                5
+                {getCartCount()}
               </span>
             </Link>
 

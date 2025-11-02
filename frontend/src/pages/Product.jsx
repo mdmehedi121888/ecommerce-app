@@ -28,9 +28,19 @@ const Product = () => {
   }, [productId, product]);
 
   const handleAddToCart = () => {
-    console.log("clicked");
+    if (productSize.length === 0) {
+      toast.warn("Select size first!");
+      return;
+    }
     toast.success(`Product added to your cart!`);
     addToCart(productId, productSize);
+  };
+
+  const handleAddToBuy = () => {
+    if (productSize.length === 0) {
+      toast.warn("Select size first!");
+      return;
+    }
   };
 
   if (!product) {
@@ -127,7 +137,10 @@ const Product = () => {
             >
               Add to Cart
             </button>
-            <button className="border border-pink-600 text-pink-600 cursor-pointer px-6 py-3 rounded-lg hover:bg-pink-50 transition">
+            <button
+              onClick={() => handleAddToBuy()}
+              className="border border-pink-600 text-pink-600 cursor-pointer px-6 py-3 rounded-lg hover:bg-pink-50 transition"
+            >
               Buy Now
             </button>
           </div>
