@@ -5,11 +5,10 @@ import ProductItem from "./ProductItem";
 const BestSeller = () => {
   const { products } = useContext(ShopContext);
   const [bestSellerProducts, setBestSellerProducts] = useState([]);
-
   useEffect(() => {
     if (products && products.length > 0) {
       setBestSellerProducts(
-        products.filter((product) => product.bestseller === true)
+        products.filter((product) => product.bestSeller === true)
       );
     }
   }, [products]);

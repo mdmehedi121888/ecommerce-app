@@ -1,8 +1,12 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
+import axios from "axios";
 import { toast } from "react-toastify";
+import { ShopContext } from "../context/ShopContext";
 
 const Login = () => {
+  const { setToken, navigate, backendUrl } = useContext(ShopContext);
   const [isLogin, setIsLogin] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -10,14 +14,14 @@ const Login = () => {
     confirmPassword: "",
   });
 
-  // Handle input change
+  // ✅ Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle form submit
-  const handleSubmit = (e) => {
+  // ✅ Handle form submit
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (
@@ -25,33 +29,67 @@ const Login = () => {
       !formData.password ||
       (!isLogin && !formData.fullName)
     ) {
-      toast.error("Please fill all fields!");
+      toast.error("⚠️ Please fill all required fields!");
       return;
     }
 
     if (!isLogin && formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match!");
+      toast.error("⚠️ Passwords do not match!");
       return;
     }
 
-    if (isLogin) {
-      toast.success("Logged in successfully!");
-    } else {
-      toast.success("Registered successfully!");
-    }
+    try {
+      setLoading(true);
+      const url = backendUrl + `/api/user/${isLogin ? "login" : "register"}`;
+      const payload = isLogin
+        ? {
+            email: formData.email,
+            password: formData.password,
+          }
+        : {
+            name: formData.fullName,
+            email: formData.email,
+            password: formData.password,
+          };
 
-    // Reset form
-    setFormData({
-      fullName: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-    });
+      const response = await axios.post(url, payload);
+
+      if (response.data.success) {
+        const receivedToken = response.data.token;
+        localStorage.setItem("token", receivedToken);
+        setToken(receivedToken);
+
+        toast.success(
+          isLogin ? "Logged in successfully!" : "Registered successfully!"
+        );
+
+        // Navigate to admin dashboard or home
+        navigate("/");
+
+        // Reset form
+        setFormData({
+          fullName: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+        });
+      } else {
+        toast.error(`❌ ${response.data.message}`);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error.response?.data?.message ||
+          "Something went wrong, please try again!"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[60vh] bg-gray-100 px-4">
-      <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
+    <div className="flex items-center justify-center min-h-[80vh] bg-gray-50 px-4">
+      <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
           {isLogin ? "Login" : "Register"}
         </h2>
@@ -71,7 +109,7 @@ const Login = () => {
           <input
             type="email"
             name="email"
-            placeholder="Email"
+            placeholder="Email Address"
             value={formData.email}
             onChange={handleChange}
             className="w-full px-4 py-2 border rounded-lg focus:outline-pink-600 focus:ring-2 focus:ring-pink-300 transition"
@@ -99,9 +137,14 @@ const Login = () => {
 
           <button
             type="submit"
-            className="w-full cursor-pointer bg-pink-600 text-white py-2 rounded-lg font-semibold hover:bg-pink-700 transition"
+            disabled={loading}
+            className={`w-full cursor-pointer py-2 rounded-lg font-semibold transition ${
+              loading
+                ? "bg-pink-400 cursor-not-allowed"
+                : "bg-pink-600 hover:bg-pink-700 text-white"
+            }`}
           >
-            {isLogin ? "Login" : "Register"}
+            {loading ? "Processing..." : isLogin ? "Login" : "Register"}
           </button>
         </form>
 

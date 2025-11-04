@@ -1,5 +1,5 @@
-import React, { useContext, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { FiSearch, FiUser, FiShoppingCart, FiMenu, FiX } from "react-icons/fi";
 import { ShopContext } from "../context/ShopContext";
 import { assets } from "../assets/assets";
@@ -7,7 +7,30 @@ import { assets } from "../assets/assets";
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const { setShowSearch, getCartCount } = useContext(ShopContext);
+  const { setShowSearch, getCartCount, token, setToken, setCartItems } =
+    useContext(ShopContext);
+  const navigate = useNavigate();
+  const dropdownRef = useRef(null);
+
+  // ✅ Close profile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // ✅ Logout function
+  const handleLogout = () => {
+    setToken("");
+    setCartItems({});
+    localStorage.removeItem("token");
+    setProfileOpen(false);
+    navigate("/login");
+  };
 
   return (
     <nav className="bg-white shadow-md fixed w-full top-0 left-0 z-50">
@@ -24,7 +47,7 @@ const Navbar = () => {
             </div>
           </Link>
 
-          {/* Middle: Nav Links (hidden on small screens) */}
+          {/* Middle: Nav Links */}
           <div className="hidden md:flex space-x-8">
             {[
               { name: "HOME", to: "/" },
@@ -39,7 +62,7 @@ const Navbar = () => {
                   `relative font-medium transition-all duration-200 pb-1 ${
                     isActive
                       ? "text-blue-600 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-full after:h-0.5 after:bg-blue-600"
-                      : "text-gray-700 hover:text-blue-600 hover:after:content-[''] hover:after:absolute hover:after:left-0 hover:after:bottom-0 hover:after:w-full hover:after:h-0.5 hover:after:bg-blue-600"
+                      : "text-gray-700  hover:after:content-[''] hover:after:absolute hover:after:left-0 hover:after:bottom-0 hover:w-full hover:h-0.5 "
                   }`
                 }
               >
@@ -50,36 +73,44 @@ const Navbar = () => {
 
           {/* Right: Icons */}
           <div className="flex items-center space-x-4 relative">
-            {/* Search Icon */}
+            {/* Search */}
             <FiSearch
               onClick={() => setShowSearch((prev) => !prev)}
-              className="text-xl text-gray-700 cursor-pointer hover:text-blue-600 transition-colors duration-200"
+              className="text-xl text-gray-700 cursor-pointer  transition-colors duration-200"
             />
 
-            {/* Profile with dropdown */}
-            <div
-              className="relative"
-              onMouseEnter={() => setProfileOpen(true)}
-              onMouseLeave={() => setProfileOpen(false)}
-            >
-              <Link to="/login">
-                <FiUser className="text-xl text-gray-700 cursor-pointer hover:text-blue-600" />
-              </Link>
-              {profileOpen && (
+            {/* Profile Menu */}
+            <div className="relative" ref={dropdownRef}>
+              <FiUser
+                className="text-xl text-gray-700 cursor-pointer "
+                onClick={() => {
+                  if (!token) {
+                    navigate("/login");
+                  } else {
+                    setProfileOpen((prev) => !prev);
+                  }
+                }}
+              />
+              {token && profileOpen && (
                 <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 shadow-lg rounded-md">
                   <NavLink
                     to="/profile"
                     className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    onClick={() => setProfileOpen(false)}
                   >
                     My Profile
                   </NavLink>
                   <NavLink
                     to="/orders"
                     className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    onClick={() => setProfileOpen(false)}
                   >
                     Orders
                   </NavLink>
-                  <button className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                  >
                     Logout
                   </button>
                 </div>
@@ -88,7 +119,7 @@ const Navbar = () => {
 
             {/* Cart */}
             <Link to="/cart" className="relative">
-              <FiShoppingCart className="text-xl text-gray-700 cursor-pointer hover:text-blue-600" />
+              <FiShoppingCart className="text-xl text-gray-700 cursor-pointer " />
               <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
                 {getCartCount()}
               </span>
