@@ -2,7 +2,7 @@ import React, { useContext, useState } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { toast } from "react-toastify";
 import { assets } from "../assets/assets";
-// import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const PlaceOrder = () => {
   const {
@@ -11,6 +11,10 @@ const PlaceOrder = () => {
     delivery_fee,
     currency,
     setCartItems,
+    cartItems,
+    backendUrl,
+    token,
+    products,
     navigate,
   } = useContext(ShopContext);
 
@@ -24,22 +28,19 @@ const PlaceOrder = () => {
   });
 
   const [paymentMethod, setPaymentMethod] = useState("cod");
-  // const navigate = useNavigate();
 
   const subtotal = getSubtotal();
   const total = getTotal();
 
-  // 🧠 Update form state
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Handle Order Submission
-  const handlePlaceOrder = (e) => {
+  const handlePlaceOrder = async (e) => {
     e.preventDefault();
 
-    // Validation
+    // 🧩 Validation
     if (
       !formData.fullName ||
       !formData.email ||
@@ -52,12 +53,75 @@ const PlaceOrder = () => {
       return;
     }
 
-    // Simulate success
-    toast.success("Order placed successfully!");
-    // setCartItems({});
+    // 🛒 Collect cart items
+    let orderItems = [];
 
-    // ✅ Navigate after short delay
-    setTimeout(() => navigate("/orders"), 500);
+    for (const items in cartItems) {
+      for (const item in cartItems[items]) {
+        if (cartItems[items][item] > 0) {
+          const itemInfo = structuredClone(
+            products.find((product) => product._id === items)
+          );
+          if (itemInfo) {
+            itemInfo.size = item;
+            itemInfo.quantity = cartItems[items][item];
+            orderItems.push(itemInfo);
+          }
+        }
+      }
+    }
+
+    const orderData = {
+      userId: localStorage.getItem("userId"),
+      address: formData,
+      items: orderItems,
+      amount: getTotal(),
+      paymentMethod,
+    };
+
+    try {
+      switch (paymentMethod) {
+        case "cod":
+          const response = await axios.post(
+            `${backendUrl}/api/order/place`,
+            orderData,
+            { headers: { token } }
+          );
+
+          if (response.data.success) {
+            setCartItems({});
+            toast.success("Order placed successfully!");
+            navigate("/orders");
+          } else {
+            toast.error(response.data.message || "Order failed!");
+          }
+          break;
+
+        case "stripe":
+          const responseStripe = await axios.post(
+            backendUrl + "/api/order/place/stripe",
+            orderData,
+            { headers: { token } }
+          );
+
+          if (responseStripe.data.success) {
+            window.location.href = responseStripe.data.session_url;
+          } else {
+            toast.error(responseStripe.data.message);
+          }
+          break;
+
+        default:
+          toast.error("Invalid payment method selected!");
+          break;
+      }
+    } catch (error) {
+      console.error("Order Error:", error);
+      toast.error(
+        error.response?.data?.message ||
+          "Something went wrong while placing order!"
+      );
+    }
   };
 
   return (

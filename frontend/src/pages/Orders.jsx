@@ -1,107 +1,160 @@
 import React, { useContext, useEffect, useState } from "react";
 import { ShopContext } from "../context/ShopContext";
-import { FaTruck } from "react-icons/fa";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { FaTruckFast, FaCreditCard, FaClock } from "react-icons/fa6";
 
 const Orders = () => {
-  const { cartItems, products, currency, delivery_fee } =
-    useContext(ShopContext);
-  const [orders, setOrders] = useState([]);
+  const { backendUrl, token, currency } = useContext(ShopContext);
+  const [ordersData, setOrdersData] = useState([]);
+
+  // ✅ Load Orders
+  const loadOrderData = async () => {
+    try {
+      if (!token) return;
+      const response = await axios.post(
+        backendUrl + "/api/order/userorders",
+        {},
+        { headers: { token } }
+      );
+
+      if (response.data.success) {
+        setOrdersData(response.data.orders);
+      } else {
+        toast.error(response.data.message || "Failed to load orders!");
+      }
+    } catch (error) {
+      console.error("Load Orders Error:", error);
+      toast.error("Something went wrong while fetching your orders!");
+    }
+  };
 
   useEffect(() => {
-    // Build orders from cartItems
-    const tempOrders = [];
+    loadOrderData();
+  }, [token]);
 
-    for (const productId in cartItems) {
-      for (const size in cartItems[productId]) {
-        const quantity = cartItems[productId][size];
-        if (quantity > 0) {
-          const product = products.find((p) => p._id === productId);
-          if (product) {
-            tempOrders.push({
-              _id: productId,
-              name: product.name,
-              image: product.image[0],
-              size,
-              quantity,
-              price: product.price,
-              deliveryFee: delivery_fee,
-              status: "Processing", // default order status
-              orderDate: new Date().toLocaleDateString(),
-            });
-          }
-        }
-      }
+  // 🕒 Format Date
+  const formatDate = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  // 🏷️ Status color mapping
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Order Placed":
+        return "text-blue-500 bg-blue-50";
+      case "Shipped":
+        return "text-yellow-600 bg-yellow-50";
+      case "Delivered":
+        return "text-green-600 bg-green-50";
+      default:
+        return "text-gray-500 bg-gray-100";
     }
-
-    setOrders(tempOrders);
-  }, [cartItems, products, delivery_fee]);
-
-  if (orders.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] text-center">
-        <p className="text-gray-500 text-lg">No orders placed yet.</p>
-      </div>
-    );
-  }
+  };
 
   return (
-    <div className="container mx-auto px-4 py-10">
-      <h2 className="text-3xl font-semibold mb-8 text-gray-800">My Orders</h2>
+    <div className="min-h-screen bg-gray-50 py-10 px-4">
+      <div className="max-w-6xl mx-auto">
+        <h2 className="text-3xl font-semibold text-pink-600 mb-8 flex items-center gap-2">
+          My Orders
+        </h2>
 
-      <div className="space-y-6">
-        {orders.map((order, index) => (
-          <div
-            key={`${order._id}-${order.size}-${index}`}
-            className="border p-6 rounded-xl shadow-md bg-white hover:shadow-lg transition"
-          >
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div className="flex flex-col gap-2">
-                <h3 className="text-lg font-semibold text-gray-800">
-                  {order.name}
-                </h3>
-                <p className="text-gray-500">Size: {order.size}</p>
-                <p className="text-gray-500">Ordered on: {order.orderDate}</p>
-                <p className="text-gray-500">
-                  Delivery Fee: {currency}
-                  {order.deliveryFee.toFixed(2)}
-                </p>
-                <p className="text-pink-600 font-medium">
-                  Total: {currency}
-                  {(order.price * order.quantity + order.deliveryFee).toFixed(
-                    2
-                  )}
-                </p>
-              </div>
-
-              {/* Order Status / Tracking */}
-              <div className="flex items-center gap-2 mt-3 md:mt-0">
-                <FaTruck className="text-xl text-gray-500" />
-                <span className="text-gray-700 font-medium">
-                  {order.status}
-                </span>
-              </div>
-            </div>
-
-            {/* Product Details */}
-            <div className="mt-4 flex items-center gap-4 border-t pt-4">
-              <img
-                src={order.image}
-                alt={order.name}
-                className="w-24 h-24 object-cover rounded-md"
-              />
-              <div>
-                <p className="text-gray-700 font-medium">{order.name}</p>
-                <p className="text-gray-500 text-sm">
-                  Quantity: {order.quantity}
-                </p>
-                <p className="text-pink-600 font-semibold">
-                  Price: {currency}
-                  {order.price.toFixed(2)}
-                </p>
-              </div>
-            </div>
+        {ordersData.length === 0 ? (
+          <div className="text-center py-24 text-gray-500 text-lg">
+            You have no orders yet 🛒
           </div>
-        ))}
+        ) : (
+          <div className="space-y-8">
+            {ordersData.map((order, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100"
+              >
+                {/* Header */}
+                <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 bg-gray-50">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      Order #{index + 1}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Placed on {formatDate(order.date)}
+                    </p>
+                  </div>
+                  <div
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium ${getStatusColor(
+                      order.status
+                    )}`}
+                  >
+                    {order.status}
+                  </div>
+                </div>
+
+                {/* Items */}
+                <div className="divide-y divide-gray-100">
+                  {order.items.map((item, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-all"
+                    >
+                      <div className="flex items-center gap-4">
+                        <img
+                          src={item.image?.[0]}
+                          alt={item.name}
+                          className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                        />
+                        <div>
+                          <h4 className="font-medium text-gray-800">
+                            {item.name}
+                          </h4>
+                          <p className="text-sm text-gray-500">
+                            Size: {item.size} | Qty: {item.quantity}
+                          </p>
+                          <p className="text-sm font-semibold text-gray-700">
+                            {currency}
+                            {(item.price * item.quantity).toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer */}
+                <div className="flex flex-wrap justify-between items-center gap-4 px-6 py-4 border-t border-gray-100 bg-gray-50">
+                  <div className="flex items-center gap-2 text-gray-600 text-sm">
+                    <FaCreditCard className="text-gray-500" size={15} />
+                    <span>
+                      Payment:{" "}
+                      {order.payment ? (
+                        <span className="text-green-600 font-medium">Paid</span>
+                      ) : (
+                        <span className="text-gray-700">Cash on Delivery</span>
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-gray-600 text-sm">
+                    <FaTruckFast className="text-gray-500" size={16} />
+                    <span className="font-medium">
+                      Total: {currency}
+                      {order.amount.toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-gray-500 text-sm">
+                    <FaClock className="text-gray-500" size={14} />
+                    <span>{formatDate(order.date)}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
