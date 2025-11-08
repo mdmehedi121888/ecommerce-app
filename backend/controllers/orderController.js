@@ -84,6 +84,24 @@ const placeOrderStripe = async (req, res) => {
   }
 };
 
+//verify stripe
+const verifyStripe = async (req, res) => {
+  const { orderId, success, userId } = req.body;
+  try {
+    if (success === "true") {
+      await orderModel.findByIdAndUpdate(orderId, { payment: true });
+      await userModel.findByIdAndUpdate(userId, { cartData: {} });
+      res.json({ success: true });
+    } else {
+      await orderModel.findByIdAndDelete(orderId);
+      res.json({ success: false });
+    }
+  } catch (error) {
+    console.log(error.message);
+    res.json({ success: false, message: error.message });
+  }
+};
+
 const allOrders = async (req, res) => {
   try {
     const orders = await orderModel.find({});
@@ -116,4 +134,11 @@ const updateStatus = async (req, res) => {
   }
 };
 
-export { placeOrder, placeOrderStripe, allOrders, userOrders, updateStatus };
+export {
+  placeOrder,
+  placeOrderStripe,
+  allOrders,
+  userOrders,
+  updateStatus,
+  verifyStripe,
+};
